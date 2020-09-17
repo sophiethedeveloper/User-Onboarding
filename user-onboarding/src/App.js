@@ -5,6 +5,7 @@ import DisplayForm from './components/DisplayForm.js'
 import axios from "axios";
 import schema from './validation/formSchema';
 import * as yup from 'yup';
+import uuid from 'react-uuid';
 
 /// Initial States ///
 
@@ -47,10 +48,11 @@ function App() {
   };
 
   const postNewFriend = newFriend => {
+    newFriend.first_name = newFriend.name
     axios.post("https://reqres.in/api/users", newFriend)
     .then(res => {
-      console.log('res', res)
-      setFriends([...friends, res.data.data]) // do not do this on auto pilot
+      const newFriends = [...friends, res.data]
+      setFriends(newFriends) // do not do this on auto pilot
       setFormValues(initialFormValues)
 
     })
@@ -97,6 +99,7 @@ function App() {
 
   const formSubmit = () => {
     const newFriend = {
+      id: Date.now(),
       name: formValues.name.trim(),
       email: formValues.email.trim(),
       password: formValues.password.trim(),
