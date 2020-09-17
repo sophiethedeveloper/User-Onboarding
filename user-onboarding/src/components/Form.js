@@ -14,6 +14,8 @@ function FriendForm(props) {
     const valueToUse = type === "checkbox" ? checked : value;
     change(name, valueToUse);
   };
+
+  console.log('submit', submit)
   return (
     <Form onSubmit={onSubmit}>
       <FormGroup>
@@ -26,6 +28,7 @@ function FriendForm(props) {
           onChange={onChange}
           value={values.name}
         />
+        <div>{errors.name}</div>
       </FormGroup>
       <FormGroup>
         <Label for="email">Email</Label>
@@ -37,6 +40,7 @@ function FriendForm(props) {
           onChange={onChange}
           value={values.email}
         />
+        <div>{errors.email}</div>
       </FormGroup>
       <FormGroup>
         <Label for="password">Password</Label>
@@ -48,6 +52,7 @@ function FriendForm(props) {
           onChange={onChange}
           value={values.password}
         />
+        <div>{errors.password}</div>
       </FormGroup>
 
       <FormGroup check>

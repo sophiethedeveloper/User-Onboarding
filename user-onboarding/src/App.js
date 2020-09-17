@@ -3,6 +3,8 @@ import "./App.css";
 import FriendForm from "./components/Form.js";
 import DisplayForm from './components/DisplayForm.js'
 import axios from "axios";
+import schema from './validation/formSchema';
+import * as yup from 'yup';
 
 /// Initial States ///
 
@@ -34,9 +36,10 @@ function App() {
 
   const getFriends = () => {
     axios
-      .get("https://reqres.in/api/users?page=2")
+      .get("https://reqres.in/api/users")
       .then(res => {
-        setFriends(res.data)
+        console.log('res', res)
+        setFriends(res.data.data)
       })
       .catch((err) => {
         console.log(err);
@@ -44,10 +47,10 @@ function App() {
   };
 
   const postNewFriend = newFriend => {
-    axios.post("https://reqres.in/api/users?page=2", newFriend)
+    axios.post("https://reqres.in/api/users", newFriend)
     .then(res => {
       console.log('res', res)
-      setFriends([...friends, res.data]) // do not do this on auto pilot
+      setFriends([...friends, res.data.data]) // do not do this on auto pilot
       setFormValues(initialFormValues)
 
     })
@@ -56,10 +59,36 @@ function App() {
     })
   }
 
+  const validate = (name, value ) => {
+    //let's validate this specific key/value
+     // yup.reach will allow us to "reach" into the schema and test only one part.
+    // We give reach the schema as the first argument, and the key we want to test as the second.
+    yup
+      .reach(schema, name)
+      //we can then run validate using the value
+      .validate(value)
+      // if the validation is successful, we can clear the error message
+      .then(valid => { // eslint-disable-line
+        setFormErrors({
+          ...formErrors,
+          [name]: ""
+        });
+      })
+      /* if the validation is unsuccessful, we can set the error message to the message 
+        returned from yup (that we created in our schema) */
+      .catch(err => {
+        setFormErrors({
+          ...formErrors,
+          [name]: err.errors[0]
+        });
+      });
+  }
+
+
    //////////////// EVENT HANDLERS ////////////////
    const inputChange = (name, value) => {
     // 🔥 STEP 10- RUN VALIDATION WITH YUP
-    // validate(name, value)
+    validate(name, value)
     setFormValues({
       ...formValues,
       [name]: value // NOT AN ARRAY
@@ -71,7 +100,7 @@ function App() {
       name: formValues.name.trim(),
       email: formValues.email.trim(),
       password: formValues.password.trim(),
-      terms: formValues.terms.trim(),
+      terms: ['terms' === true]
     }
     // 🔥 STEP 8- POST NEW FRIEND USING HELPER
     postNewFriend(newFriend)
@@ -82,6 +111,15 @@ function App() {
     getFriends()
   }, [])
 
+  useEffect(() => {
+    // 🔥 STEP 9- ADJUST THE STATUS OF `disabled` EVERY TIME `formValues` CHANGES
+  schema.isValid(formValues)
+  .then(valid => {
+    setDisabled(!valid);
+  });
+}, [formValues]);
+
+  console.log('friends data', friends)
   return (
     <div className="container">
       <FriendForm 
@@ -91,14 +129,13 @@ function App() {
        disabled={disabled}
        errors={formErrors}
        />
-
-      {/* {
+      {
         friends.map(friend => {
           return (
             <DisplayForm key={friend.id} details={friend} />
           )
         })
-      } */}
+      }
     </div>
   );
 }
